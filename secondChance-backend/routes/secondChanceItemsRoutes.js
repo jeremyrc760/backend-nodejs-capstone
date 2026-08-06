@@ -32,11 +32,11 @@ router.get('/', async (req, res, next) => {
         //Step 2: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
         //Step 2: task 3 - insert code here
-        const secondChanceItem = await.find({}).toArray();
+        const secondChanceItems = await collection.find({}).toArray();
         //Step 2: task 4 - insert code here
         res.json(secondChanceItems);
     } catch (e) {
-        logger.console.error('oops something went wrong', e)
+        logger.error('oops something went wrong', e)
         next(e);
     }
 });
@@ -76,6 +76,7 @@ router.get('/:id', async (req, res, next) => {
         //Step 4: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
         //Step 4: task 3 - insert code here
+        const id = req.params.id;
         const secondChanceItem = await collection.findOne({id: id});
         //Step 4: task 4 - insert code here
         if (!secondChanceItem) {
