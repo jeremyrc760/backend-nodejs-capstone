@@ -10,6 +10,7 @@ const secondChanceItemsRoutes = require('./routes/secondChanceItemsRoutes');
 
 const app = express();
 app.use("*",cors());
+app.use(express.json());
 app.use('/api/secondchance/items', secondChanceItemsRoutes);
 const port = 3060;
 
@@ -19,8 +20,6 @@ connectToDatabase().then(() => {
 })
     .catch((e) => console.error('Failed to connect to DB', e));
 
-
-app.use(express.json());
 
 // Route files
 
