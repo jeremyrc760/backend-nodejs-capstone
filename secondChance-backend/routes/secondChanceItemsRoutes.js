@@ -32,11 +32,11 @@ router.get('/', async (req, res, next) => {
         //Step 2: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
         //Step 2: task 3 - insert code here
-        const secondChanceItem = await.find({}).toArray();
+        const secondChanceItems = await collection.find({}).toArray();
         //Step 2: task 4 - insert code here
         res.json(secondChanceItems);
     } catch (e) {
-        logger.console.error('oops something went wrong', e)
+        logger.error('oops something went wrong', e)
         next(e);
     }
 });
@@ -49,12 +49,12 @@ router.post('/', upload.single('file'), async(req, res,next) => {
         const db = await connectToDatabase();
         //Step 3: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
+        const lastItemQuery = await collection.find().sort({'id': -1}).limit(1);
         //Step 3: task 3 - insert code here
         let secondChanceItem = req.body;
         //Step 3: task 4 - insert code here
-        const lastItemQuery = await collection.find().sort({'id': -1}).limit(1);
         await lastItemQuery.forEach(item => {
-          secondChanceItem.id = (parseInt(item.id) + 1).toString;
+            secondChanceItem.id = (parseInt(item.id) + 1).toString();
         });
         //Step 3: task 5 - insert code here
         const date_added = Math.floor(new Date().getTime() / 1000);
@@ -62,7 +62,7 @@ router.post('/', upload.single('file'), async(req, res,next) => {
 
         secondChanceItem = await collection.insertOne(secondChanceItem);
         console.log(secondChanceItem);
-        res.status(201).json(secondChanceItem.ops[0]);
+        res.status(201).json(secondChanceItem);
     } catch (e) {
         next(e);
     }
@@ -76,6 +76,7 @@ router.get('/:id', async (req, res, next) => {
         //Step 4: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
         //Step 4: task 3 - insert code here
+        const id = req.params.id;
         const secondChanceItem = await collection.findOne({id: id});
         //Step 4: task 4 - insert code here
         if (!secondChanceItem) {
@@ -96,15 +97,18 @@ router.put('/:id', async(req, res,next) => {
         //Step 5: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
         //Step 5: task 3 - insert code here
+        const id = req.params.id;
         const secondChanceItem = await collection.findOne({ id });
+
           if (!secondChanceItem) {
             logger.error('secondChanceItem not found');
             return res.status(404).json({error: "secondChanceItem not found"});
           }
         //Step 5: task 4 - insert code here
-        secondChanceItem.category = req.body.categoty;
+        secondChanceItem.category = req.body.category;
         secondChanceItem.condition = req.body.condition;
         secondChanceItem.age_days = req.body.age_days;
+        secondChanceItem.zipcode = req.body.zipcode;
         secondChanceItem.description = req.body.description;
         secondChanceItem.age_years = Number((secondChanceItem.age_days/365).toFixed(1));
         secondChanceItem.updateAt = new Date();
@@ -133,6 +137,7 @@ router.delete('/:id', async(req, res,next) => {
         const db = await connectToDatabase();
         //Step 6: task 2 - insert code here
         const collection = db.collection("secondChanceItems");
+        const id = req.params.id;
         //Step 6: task 3 - insert code here
         const secondChanceItem = await collection.findOne({ id });
 
