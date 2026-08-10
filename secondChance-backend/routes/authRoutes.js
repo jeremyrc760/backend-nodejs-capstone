@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
       const collection = db.collection('users');
 	  // Task 3: Check if user credentials already exists in the database and throw an error if they do
       const existingEmail = await collection.findOne({email: req.body.email});
-      if (!existingEmail) {
+      if (existingEmail) {
         logger.error('Email id already exists');
         return res.status(400).json({error: 'Email id already exists'});
       }
