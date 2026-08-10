@@ -5,14 +5,19 @@ const connectToDatabase = require("../models/db");
 const router = express.Router();
 const dotenv = require('dotenv');
 const pino = require('pino');
+const { ExpressValidator } = require('express-validator');
 dotenv.config();
+
+//Use the `body`, `validationResult` from `express-validator` for input validation
+const {body, validationResult} = require ('express-validator');
+const { ReturnDocument } = require('mongodb');
 
 const logger = pino();
 
 // craete JWT secret
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
+// user registration API
 router.post('/register', async (req, res) => {
     try {
       // Task 1: Connect to `secondChance` in MongoDB through `connectToDatabase` in `db.js`.
@@ -55,6 +60,7 @@ router.post('/register', async (req, res) => {
         }
 });
 
+// User login API
 router.post('/login', async(req, res) => {
     try {
         // Task 1: Connect to `secondChance` in MongoDB through `connectToDatabase` in `db.js`.
@@ -96,6 +102,66 @@ router.post('/login', async(req, res) => {
         return res.status(500).json({error: 'Internal server error', details: e.message});
 
     }
+});
+
+// User update API
+router.put('/update', async (req, res) => {
+  // Validate the input using `validationResult` and return appropriate message if there is an error
+  const errors = validationResult(req);
+
+  // Check if `email` is present in the header and throw an appropriate error message if not present
+  if (!errors.isEmpty()) {
+    logger.error('Validation errors in update request', errors.array());
+    return res.status(400).json({error: 'Email is not found in the request headers'});
+
+  }
+  
+  try {
+    const email = req.headers.email;
+
+    if (!email) {
+        logger.error('email is not found in the request headers');
+        return res.status(400).json({error: 'email is not found in the request headers'});
+    }
+
+  // Connect to MongoDB 
+  const db = await connectToDatabase();
+  const collection = db.collection("users");
+
+  // Find user credentials
+  const existingUser = await collection.findOne({email});
+
+  if (!existingUser) {
+    logger.error('User not found');
+    return res.status(404).json({error: "User not found"});
+  }
+
+  existingUser.firstName = req.body.firstName;
+  existingUser.updateAt = new Date();
+
+  // Update user credentials in db
+  const updatedUser = await collection.findOneAndUpdate(
+    {email},
+    {$set: existingUser},
+    {ReturnDocument: 'after'}
+  );
+
+  // Create JWT authentication with user._id as payload using secret key from .env file
+  const payload = {
+    user: {
+        id: updatedUser._id.toString(),
+    },
+  };
+
+  const authtoken = jwt.sign(payload, JWT_SECRET);
+  logger.info('User updated successfully');
+
+  res.json({authtoken});
+} catch (error) {
+    logger.eror(error);
+    return res.status(500).send("Internal server error");
+}
+
 });
 
 module.exports = router;
