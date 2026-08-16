@@ -47,7 +47,7 @@ function MainPage() {
     };
 
     return (
-        <div className="container mt-5">
+        <div className="container mt-5">          
             {isLoggedIn ? (
               <button onClick={handleAddItem}>Add Item</button>
             ) : (
