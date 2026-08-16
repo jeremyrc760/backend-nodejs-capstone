@@ -47,6 +47,10 @@ app.get('/', (req, res) => {
   res.send('Inside the server')
 })
 
+app.get('/health', (req,res) => {
+  res.status(200).json({status: 'ok'})
+})
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)
 })
